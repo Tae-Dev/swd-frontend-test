@@ -1,6 +1,6 @@
 "use client";
 import { Col, Divider, Row } from "antd";
-import React, { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import styles from "./web-management.module.scss";
 
 function WebManagementPage() {
