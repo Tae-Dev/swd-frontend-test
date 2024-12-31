@@ -1,14 +1,19 @@
 "use client";
-import { AppDispatch } from "@/app/store";
+import { AppDispatch, RootState } from "@/app/store";
 import {
   addData,
   removeData,
   FormData,
   NameTitle,
   Nationality,
+  initData,
+  updateData,
+  setData,
 } from "@/app/store/formSlice";
 import {
   Button,
+  Checkbox,
+  CheckboxChangeEvent,
   Col,
   DatePicker,
   Form,
@@ -20,8 +25,9 @@ import {
   TableProps,
 } from "antd";
 import { useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import styles from "./user-management.module.scss";
+import dayjs from "dayjs";
 
 const { Option } = Select;
 
@@ -73,9 +79,11 @@ const countryOptions = [
 function UserManagementPage() {
   const [form] = Form.useForm();
   const dispatch: AppDispatch = useDispatch();
+  const data = useSelector((state: RootState) => state.form.data);
   const [triggerUpdate, setTriggerUpdate] = useState(0);
   const inputCitizenRefs = useRef<Array<HTMLInputElement | null>>([]);
   const [list, setList] = useState<FormData[]>([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   useEffect(() => {
     const storedList = JSON.parse(localStorage.getItem("formList") || "[]");
@@ -97,15 +105,31 @@ function UserManagementPage() {
       }
     };
 
-  const handleSubmit = (values: any) => {
-    dispatch(addData(values));
+  const handleSubmit = (value: FormData) => {
+    console.log("value aa", value);
+    console.log("data", data);
+
+    if (data.id) {
+      dispatch(updateData({ ...value, id: data.id }));
+    } else {
+      dispatch(addData(value));
+    }
+
     setTriggerUpdate((prev) => prev + 1);
     form.resetFields();
   };
 
-  const handleDelete = (index: number) => {
-    dispatch(removeData(index));
+  const handleDelete = (id: string) => {
+    dispatch(removeData(id));
     setTriggerUpdate((prev) => prev + 1);
+  };
+
+  const handleEdit = (value: FormData) => {
+    dispatch(setData(value));
+    form.setFieldsValue({
+      ...value,
+      birthday: dayjs(value.birthday),
+    });
   };
 
   const columns = [
@@ -123,8 +147,10 @@ function UserManagementPage() {
     },
     {
       title: "Mobile Phone",
-      dataIndex: "mobilePhone",
       key: "mobilePhone",
+      render: (_: string, __: FormData, index: number) => (
+        <div>{__.countryCode + __.mobilePhone}</div>
+      ),
     },
     {
       title: "Nationality",
@@ -136,10 +162,17 @@ function UserManagementPage() {
       key: "manage",
       render: (_: string, __: FormData, index: number) => (
         <Row gutter={2}>
-          <Button type="link" onClick={() => {}}>
+          <Button
+            type="link"
+            onClick={() => {
+              console.log("ed");
+
+              handleEdit(__);
+            }}
+          >
             Edit
           </Button>
-          <Button type="link" onClick={() => handleDelete(index)}>
+          <Button type="link" onClick={() => handleDelete(__.id || "")}>
             Delete
           </Button>
         </Row>
@@ -147,15 +180,25 @@ function UserManagementPage() {
     },
   ];
 
-  const rowSelection: TableProps<FormData>['rowSelection'] = {
-    onChange: (selectedRowKeys: React.Key[], selectedRows: FormData[]) => {
-      console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+  const handleSelectAll = (e: CheckboxChangeEvent) => {
+    if (e.target.checked) {
+      const allKeys = list.map((item) => item.id || ""); // ใช้ `id` ของข้อมูล
+      setSelectedRowKeys(allKeys);
+    } else {
+      setSelectedRowKeys([]);
+    }
+  };
+  
+  const rowSelection: TableProps<FormData>["rowSelection"] = {
+    selectedRowKeys,
+    onChange: (selectedKeys) => {
+      setSelectedRowKeys(selectedKeys);
     },
   };
 
   return (
     <div className={styles.content}>
-      <h1>Form & Table</h1>
+      <h1 style={{ margin: 0 }}>Form & Table</h1>
       <Form
         form={form}
         layout="horizontal"
@@ -164,7 +207,10 @@ function UserManagementPage() {
           padding: "20px",
           borderRadius: "8px",
           border: "1px solid black",
+          marginLeft: "100px",
+          marginRight: "100px",
         }}
+        className={styles.form_content}
       >
         <Row gutter={16}>
           <Col span={6}>
@@ -208,7 +254,7 @@ function UserManagementPage() {
               label="Birthday"
               rules={[{ required: true }]}
             >
-              <DatePicker />
+              <DatePicker format={"DD/MM/YY"} placeholder="mm//dd//yy" />
             </Form.Item>
           </Col>
 
@@ -218,7 +264,7 @@ function UserManagementPage() {
               label="Nationality"
               rules={[{ required: true }]}
             >
-              <Select placeholder="Select Nationality">
+              <Select placeholder="-- Please Select --">
                 {nationalityList.map((nationality, i) => (
                   <Option key={i} value={nationality.value}>
                     {nationality.title}
@@ -306,7 +352,11 @@ function UserManagementPage() {
 
         <Row gutter={16}>
           <Col span={8}>
-            <Form.Item name="countryCode" label="Mobile phone" rules={[{ required: true }]}>
+            <Form.Item
+              name="countryCode"
+              label="Mobile phone"
+              rules={[{ required: true }]}
+            >
               <Select>
                 {countryOptions.map((country, i) => (
                   <Option key={i} value={country.value}>
@@ -346,7 +396,14 @@ function UserManagementPage() {
             <Form.Item>
               <Row gutter={40}>
                 <Col>
-                  <Button size="small" type="default" htmlType="submit">
+                  <Button
+                    size="small"
+                    type="default"
+                    onClick={() => {
+                      dispatch(initData());
+                      form.resetFields();
+                    }}
+                  >
                     Reset
                   </Button>
                 </Col>
@@ -360,13 +417,28 @@ function UserManagementPage() {
           </Col>
         </Row>
       </Form>
+      <Row gutter={2}>
+        <Col>
+          <Checkbox   onChange={handleSelectAll}
+  checked={selectedRowKeys.length === list.length && list.length > 0}
+  indeterminate={
+    selectedRowKeys.length > 0 && selectedRowKeys.length < list.length
+  }>Select all</Checkbox>
+        </Col>
+        <Col>
+          {" "}
+          <Button size="small" type="default" onClick={() => {}}>
+            Delete
+          </Button>
+        </Col>
+      </Row>
+
       <Table
-      
         dataSource={list}
-        rowSelection={{ type: 'checkbox', ...rowSelection }}
+        rowSelection={{ type: "checkbox", ...rowSelection }}
         columns={columns}
-        rowKey={(_, index) => (index as number).toString()}
-        pagination={{ pageSize: 5, position: ['topRight'] }}
+        rowKey={(record) => record.id || ""}
+        pagination={{ pageSize: 1, position: ["topRight"] }}
       />
     </div>
   );

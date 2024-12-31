@@ -28,6 +28,7 @@ export interface CitizenIDState {
 }
 
 export interface FormData {
+  id?: string;
   title: NameTitle | null;
   firstName: string;
   lastName: string;
@@ -47,6 +48,7 @@ interface FormState {
 
 const initialState: FormState = {
   data: {
+    id: undefined,
     title: null,
     firstName: "",
     lastName: "",
@@ -65,26 +67,37 @@ const formSlice = createSlice({
   name: "form",
   initialState,
   reducers: {
-    addData(state, action: PayloadAction<FormData>) {
-      state.data = action.payload;
-      const existingList = JSON.parse(localStorage.getItem("formList") || "[]");
-      const updatedList = [
-        ...existingList,
-        { ...action.payload, id: Date.now().toString() },
-      ];
-      localStorage.setItem("formList", JSON.stringify(updatedList));
+    initData(state, action: PayloadAction) {
+      state.data = initialState.data;
     },
-    removeData(state, action: PayloadAction<number>) {
+    setData(state, action: PayloadAction<FormData>) {
+      state.data = { ...action.payload };
+    },
+    addData(state, action: PayloadAction<FormData>) {
+      const newData = { ...action.payload, id: Date.now().toString() };
       const existingList = JSON.parse(localStorage.getItem("formList") || "[]");
-      if (existingList) {
-        const filterList = existingList.filter(
-          (exis: any, i: number) => i !== action.payload
-        );
-        localStorage.setItem("formList", JSON.stringify(filterList));
-      }
+      const updatedList = [...existingList, newData];
+      localStorage.setItem("formList", JSON.stringify(updatedList));
+      state.data = initialState.data;
+    },
+    removeData(state, action: PayloadAction<string>) {
+      const existingList = JSON.parse(localStorage.getItem("formList") || "[]");
+      const filteredList = existingList.filter(
+        (item: FormData) => item.id !== action.payload
+      );
+      localStorage.setItem("formList", JSON.stringify(filteredList));
+    },
+    updateData(state, action: PayloadAction<FormData>) {
+      const existingList = JSON.parse(localStorage.getItem("formList") || "[]");
+      const updatedList = existingList.map((item: FormData) =>
+        item.id == action.payload.id ? { ...item, ...action.payload } : item
+      );
+      localStorage.setItem("formList", JSON.stringify(updatedList));
+      state.data = initialState.data;
     },
   },
 });
 
-export const { addData, removeData } = formSlice.actions;
+export const { initData, setData, addData, updateData, removeData } =
+  formSlice.actions;
 export default formSlice.reducer;
