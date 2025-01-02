@@ -54,13 +54,9 @@ function WebManagementPage() {
 
   return (
     <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        width: "100%",
-      }}
+      className={styles.content}
     >
+      <h1 style={{ margin: 0 }}>Layout & Style</h1>
       <Row gutter={30}>
         <Col span={6}>
           <div

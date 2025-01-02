@@ -79,6 +79,7 @@ const formSlice = createSlice({
       const updatedList = [...existingList, newData];
       localStorage.setItem("formList", JSON.stringify(updatedList));
       state.data = initialState.data;
+      alert("Save Success")
     },
     removeData(state, action: PayloadAction<string>) {
       const existingList = JSON.parse(localStorage.getItem("formList") || "[]");
@@ -86,6 +87,7 @@ const formSlice = createSlice({
         (item: FormData) => item.id !== action.payload
       );
       localStorage.setItem("formList", JSON.stringify(filteredList));
+      alert("Delete Success")
     },
     updateData(state, action: PayloadAction<FormData>) {
       const existingList = JSON.parse(localStorage.getItem("formList") || "[]");
@@ -94,6 +96,7 @@ const formSlice = createSlice({
       );
       localStorage.setItem("formList", JSON.stringify(updatedList));
       state.data = initialState.data;
+      alert("Save Success")
     },
   },
 });

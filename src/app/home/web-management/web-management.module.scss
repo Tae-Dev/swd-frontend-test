@@ -1,3 +1,12 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: "100%";
+  padding-left: 100px;
+  padding-right: 100px;
+}
+
 .button_border {
   background-color: #fff;
   padding: 10px;

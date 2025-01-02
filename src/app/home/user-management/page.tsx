@@ -1,15 +1,15 @@
 "use client";
-import { AppDispatch, RootState } from "@/app/store";
+import { AppDispatch, RootState } from "../../store";
 import {
-  addData,
-  removeData,
   FormData,
   NameTitle,
   Nationality,
+  addData,
   initData,
-  updateData,
+  removeData,
   setData,
-} from "@/app/store/formSlice";
+  updateData,
+} from "../../store/formSlice";
 import {
   Button,
   Checkbox,
@@ -24,10 +24,11 @@ import {
   Table,
   TableProps,
 } from "antd";
+import dayjs from "dayjs";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./user-management.module.scss";
-import dayjs from "dayjs";
+import { useTranslations } from "next-intl";
 
 const { Option } = Select;
 
@@ -90,10 +91,6 @@ function UserManagementPage() {
     setList(storedList);
   }, [triggerUpdate]);
 
-  useEffect(() => {
-    console.log("list", list);
-  }, [list]);
-
   const handleInputChange =
     (index: number, maxLength: number) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,9 +103,6 @@ function UserManagementPage() {
     };
 
   const handleSubmit = (value: FormData) => {
-    console.log("value aa", value);
-    console.log("data", data);
-
     if (data.id) {
       dispatch(updateData({ ...value, id: data.id }));
     } else {
@@ -132,6 +126,12 @@ function UserManagementPage() {
     });
   };
 
+  const handleDeleteSelected = () => {
+    selectedRowKeys.forEach((key) => dispatch(removeData(key as string)));
+    setTriggerUpdate((prev) => prev + 1);
+    setSelectedRowKeys([]);
+  };
+
   const columns = [
     {
       title: "Name",
@@ -148,7 +148,7 @@ function UserManagementPage() {
     {
       title: "Mobile Phone",
       key: "mobilePhone",
-      render: (_: string, __: FormData, index: number) => (
+      render: (_: string, __: FormData) => (
         <div>{__.countryCode + __.mobilePhone}</div>
       ),
     },
@@ -160,13 +160,11 @@ function UserManagementPage() {
     {
       title: "Manage",
       key: "manage",
-      render: (_: string, __: FormData, index: number) => (
+      render: (_: string, __: FormData) => (
         <Row gutter={2}>
           <Button
             type="link"
             onClick={() => {
-              console.log("ed");
-
               handleEdit(__);
             }}
           >
@@ -188,7 +186,7 @@ function UserManagementPage() {
       setSelectedRowKeys([]);
     }
   };
-  
+
   const rowSelection: TableProps<FormData>["rowSelection"] = {
     selectedRowKeys,
     onChange: (selectedKeys) => {
@@ -283,6 +281,7 @@ function UserManagementPage() {
                   <Form.Item name={["citizenID", "part1"]} noStyle>
                     <Input
                       onChange={handleInputChange(0, 1)}
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
                       ref={(el: any) => (inputCitizenRefs.current[0] = el)}
                       maxLength={1}
                       className={styles.centered_input}
@@ -293,6 +292,7 @@ function UserManagementPage() {
                   <Form.Item name={["citizenID", "part2"]} noStyle>
                     <Input
                       onChange={handleInputChange(1, 4)}
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
                       ref={(el: any) => (inputCitizenRefs.current[1] = el)}
                       maxLength={4}
                       className={styles.centered_input}
@@ -303,6 +303,7 @@ function UserManagementPage() {
                   <Form.Item name={["citizenID", "part3"]} noStyle>
                     <Input
                       onChange={handleInputChange(2, 5)}
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
                       ref={(el: any) => (inputCitizenRefs.current[2] = el)}
                       maxLength={5}
                       className={styles.centered_input}
@@ -313,6 +314,7 @@ function UserManagementPage() {
                   <Form.Item name={["citizenID", "part4"]} noStyle>
                     <Input
                       onChange={handleInputChange(3, 2)}
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
                       ref={(el: any) => (inputCitizenRefs.current[3] = el)}
                       maxLength={2}
                       className={styles.centered_input}
@@ -323,6 +325,7 @@ function UserManagementPage() {
                   <Form.Item name={["citizenID", "part5"]} noStyle>
                     <Input
                       onChange={handleInputChange(4, 1)}
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
                       ref={(el: any) => (inputCitizenRefs.current[4] = el)}
                       maxLength={1}
                       className={styles.centered_input}
@@ -419,15 +422,19 @@ function UserManagementPage() {
       </Form>
       <Row gutter={2}>
         <Col>
-          <Checkbox   onChange={handleSelectAll}
-  checked={selectedRowKeys.length === list.length && list.length > 0}
-  indeterminate={
-    selectedRowKeys.length > 0 && selectedRowKeys.length < list.length
-  }>Select all</Checkbox>
+          <Checkbox
+            onChange={handleSelectAll}
+            checked={selectedRowKeys.length === list.length && list.length > 0}
+            indeterminate={
+              selectedRowKeys.length > 0 && selectedRowKeys.length < list.length
+            }
+          >
+            Select all
+          </Checkbox>
         </Col>
         <Col>
           {" "}
-          <Button size="small" type="default" onClick={() => {}}>
+          <Button size="small" type="default" onClick={handleDeleteSelected}>
             Delete
           </Button>
         </Col>
@@ -438,7 +445,7 @@ function UserManagementPage() {
         rowSelection={{ type: "checkbox", ...rowSelection }}
         columns={columns}
         rowKey={(record) => record.id || ""}
-        pagination={{ pageSize: 1, position: ["topRight"] }}
+        pagination={{ pageSize: 5, position: ["topRight"] }}
       />
     </div>
   );

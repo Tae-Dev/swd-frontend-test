@@ -1,11 +1,9 @@
 'use client';
 import { configureStore } from '@reduxjs/toolkit';
-import userManagementReducer from './userManagementSlice';
 import formReducer from './formSlice';
 
 export const store = configureStore({
   reducer: {
-    userManagement: userManagementReducer,
     form: formReducer
   },
 });
