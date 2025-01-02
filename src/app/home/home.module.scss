@@ -1,0 +1,44 @@
+.content {
+  padding: 20px 30px 0px 10px;
+  // position: absolute;
+  // top: 50%;
+  // left: 50%;
+  // transform: translate(-50%, -50%);
+}
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.container_box {
+  display: flex;
+  gap: 10px;
+    position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.card {
+  width: 200px;
+  padding: 10px;
+  background-color: #f1f1f1;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 40px;
+  cursor: pointer;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 300;
+}
+
+.description {
+    font-size: 16px;
+}
